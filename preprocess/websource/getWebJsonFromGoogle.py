@@ -7,6 +7,8 @@ import sys
 import urllib2
 import urllib
 import json
+import time
+import random
 reload(sys)
 sys.setdefaultencoding('utf-8')
 
@@ -17,16 +19,22 @@ def searchWeb(query, resultFileName, resultCount):
         params = {
             'q':query
         }
-        url = 'https://ajax.googleapis.com/ajax/services/search/web?v=1.0&rsz=5&' + \
-        urllib.urlencode(params) + '&start=' + str(start);
+        url = "https://ajax.googleapis.com/ajax/services/search/web?v=1.0&rsz=5&" + \
+        	urllib.urlencode(params) + "&start=" + str(start)
+		
+        #url = urllib.unquote(url)
+  		#'q='+query+'&start=' + str(start)	
         request = urllib2.Request(url)
         response = urllib2.urlopen(request)
-        results = json.load(response)
-        resultFile.write(json.dumps(results))
+        #response = unicode(response,'utf-8').encode('utf-8')
+        results = json.load(response, encoding='utf-8')
+        line = json.dumps(results,ensure_ascii=False)
+        resultFile.write(line)
         resultFile.write('\n')
         start += 5
     resultFile.close()
-
+    sleepTime = random.randint(10,20)
+    time.sleep(sleepTime)
 if len(sys.argv) < 4:
     print 'sys.argv[1]: queryFile'
     print 'sys.argv[2]: resultDir'
@@ -42,7 +50,7 @@ else:
         line_count += 1
         if line_count < int(sys.argv[4]):continue
         query = line.strip().split('\t')
+        print 'current process query' + str(line_count) + ': ' + query[1].encode('gb2312')
         resultFileName = sys.argv[2] + '/' + str(query[0]) + '.json'
         searchWeb(query[1], resultFileName, int(sys.argv[3]))
-        break
     queryFile.close()
